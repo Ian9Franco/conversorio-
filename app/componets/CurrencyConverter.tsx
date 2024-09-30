@@ -25,15 +25,14 @@ const subscriptionCategories = [
         { name: 'Prime Video', price: 8.99 },
         { name: 'Disney Plus', price: 7.99 },
         { name: 'Paramount+', price: 4.99 },
-        { name: 'Streamio', price: 0.00 },
         { name: 'Crunchyroll', price: 7.99 },
         { name: 'Apple TV', price: 6.99 },
         { name: 'YouTube Premium', price: 11.99 },
-        { name: 'Twitch', price: 0.00 },
-        { name: 'Kick', price: 0.00 },
+        { name: 'Twitch', price: 1.99 },
+        { name: 'Kick', price: 4.99 },
         { name: 'ViX Premium (US)', price: 6.99 },
         { name: 'Rakuten Viki', price: 4.99 },
-        { name: 'CINE FAN', price: 0.00 },
+        { name: 'CINE FAN Black', price: 11.00 },
         { name: 'Plex Pass', price: 4.99 },
         { name: 'Pornhub', price: 9.99 },
         { name: 'Brazzers', price: 29.99 },
@@ -48,7 +47,6 @@ const subscriptionCategories = [
         { name: 'Apple Music', price: 9.99 },
         { name: 'Tidal', price: 9.99 },
         { name: 'Deezer', price: 10.99 },
-        { name: 'Yandex Music', price: 0.00 },
       ]
     },
     {
@@ -69,6 +67,10 @@ const subscriptionCategories = [
         { name: 'ExitLag', price: 6.50 },
         { name: 'Just Dance Now VIP', price: 4.99 },
         { name: 'iRacing', price: 13.00 },
+      ]
+    },
+    { name: "Creditos para jueguitos",
+      subscriptions: [
         { name: 'Fortnite (paVos)', price: 0.00 },
         { name: 'EA SPORTS FC 24 (FIFA)', price: 0.00 },
         { name: 'EA SPORTS FC 24 (FIFA) Mobile', price: 0.00 },
@@ -108,11 +110,10 @@ const subscriptionCategories = [
       subscriptions: [
         { name: 'GitHub Copilot', price: 10.00 },
         { name: 'Vercel', price: 20.00 },
-        { name: 'JetBrains (personal)', price: 24.90 },
-        { name: 'JetBrains (empresas)', price: 0.00 },
+        { name: 'JetBrains (personal)', price: 16.90 },
+        { name: 'JetBrains (empresas)', price: 46.92 },
         { name: 'Webflow', price: 16.00 },
         { name: 'Bubble.io', price: 25.00 },
-        { name: 'Nic.ar (dominios)', price: 0.00 },
         { name: 'Supabase', price: 25.00 },
         { name: 'RunJS', price: 5.00 },
       ]
@@ -137,7 +138,7 @@ const subscriptionCategories = [
         { name: 'Notion', price: 8.00 },
         { name: 'Trading View', price: 14.95 },
         { name: 'Starlink', price: 110.00 },
-        { name: 'Obsidian', price: 0.00 },
+        { name: 'Obsidian', price: 10.00 },
       ]
     },
     {
@@ -148,7 +149,7 @@ const subscriptionCategories = [
         { name: 'One Drive', price: 1.99 },
         { name: 'iCloud', price: 0.99 },
         { name: 'Apple One', price: 16.95 },
-        { name: 'Yandex 360', price: 0.00 },
+        { name: 'Yandex 360', price: 2.49 },
       ]
     },
     {
@@ -190,7 +191,7 @@ const subscriptionCategories = [
     {
       name: "Other",
       subscriptions: [
-        { name: 'Mercado Libre', price: 0.00 },
+        { name: 'Mercado Libre', price: 4.00 },
       ]
     }
   ];
@@ -199,6 +200,14 @@ const subscriptionCategories = [
 const API_KEY = '87c53620b61a8a85f3232a88';
 const EXTERNAL_API_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}/latest/USD`;
 
+const currencyFlags: { [key: string]: string } = {
+  USD: '🇺🇸',
+  EUR: '🇪🇺',
+  GBP: '🇬🇧',
+  JPY: '🇯🇵',
+  ARS: '🇦🇷',
+  // Añade más banderas según sea necesario
+};
 export default function CurrencyConverter() {
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>({});
   const [amount, setAmount] = useState('');
@@ -219,24 +228,25 @@ export default function CurrencyConverter() {
         const data = await response.json();
         setExchangeRates(data.conversion_rates);
       } catch (error) {
-        console.error('Error fetching exchange rates:', error);
+        console.error('Error al obtener tasas de cambio:', error);
       }
     };
     fetchExchangeRates();
   }, []);
 
   const convertCurrency = useCallback(() => {
-    if (!amount) {
-      setConvertedAmount('');
-      setTotalOriginal(0);
-      setTotalConverted(0);
-      setTaxBreakdown({});
-      return;
-    }
-
     const fromRate = exchangeRates[fromCurrency] || 1;
     const toRate = exchangeRates[toCurrency] || 1;
-    const converted = (parseFloat(amount) / fromRate) * toRate;
+
+    const subscriptionTotal = selectedSubscriptions.reduce((total, subName) => {
+      const subscription = subscriptionCategories
+        .flatMap(category => category.subscriptions)
+        .find(sub => sub.name === subName);
+      return total + (subscription?.price || 0);
+    }, 0);
+
+    const totalInUSD = (parseFloat(amount) || 0) + subscriptionTotal;
+    const converted = (totalInUSD / fromRate) * toRate;
 
     if (fromCurrency === 'USD' && toCurrency === 'ARS') {
       const baseAmount = converted;
@@ -248,7 +258,7 @@ export default function CurrencyConverter() {
       const totalWithTaxes = baseAmount + iva + pais + ganancias + iibb;
 
       setConvertedAmount(totalWithTaxes.toFixed(2));
-      setTotalOriginal(baseAmount);
+      setTotalOriginal(totalInUSD);
       setTotalConverted(totalWithTaxes);
       setTaxBreakdown({
         baseAmount: baseAmount,
@@ -260,27 +270,10 @@ export default function CurrencyConverter() {
       });
     } else {
       setConvertedAmount(converted.toFixed(2));
-      setTotalOriginal(parseFloat(amount));
+      setTotalOriginal(totalInUSD);
       setTotalConverted(converted);
       setTaxBreakdown({});
     }
-
-    const subscriptionTotal = selectedSubscriptions.reduce((total, subName) => {
-      const subscription = subscriptionCategories
-        .flatMap(category => category.subscriptions)
-        .find(sub => sub.name === subName);
-      return total + (subscription?.price || 0);
-    }, 0);
-
-    const totalInOriginal = parseFloat(amount) + subscriptionTotal;
-    let totalInConverted = (totalInOriginal / fromRate) * toRate;
-
-    if (fromCurrency === 'USD' && toCurrency === 'ARS') {
-      const taxes = totalInConverted * (IVA_TAX + PAIS_TAX + EARNINGS_TAX + IIBB_TAX);
-      totalInConverted += taxes;
-    }
-
-    setTotalConverted(totalInConverted);
   }, [amount, fromCurrency, toCurrency, selectedSubscriptions, exchangeRates]);
 
   useEffect(() => {
@@ -303,17 +296,23 @@ export default function CurrencyConverter() {
     }
   }, [isDarkMode]);
 
+  const getConvertedPrice = (price: number) => {
+    const fromRate = exchangeRates[fromCurrency] || 1;
+    const toRate = exchangeRates[toCurrency] || 1;
+    return ((price / fromRate) * toRate).toFixed(2);
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-6 p-4">
-      <Card className="w-full lg:w-2/3">
+      <Card className="w-full lg:w-2/3 shadow-lg">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Enhanced Currency Converter</CardTitle>
+          <CardTitle>Conversor de Monedas Mejorado</CardTitle>
           <div className="flex items-center space-x-2">
             <Sun className="h-4 w-4" />
             <Switch
               checked={isDarkMode}
               onCheckedChange={setIsDarkMode}
-              aria-label="Toggle dark mode"
+              aria-label="Alternar modo oscuro"
             />
             <Moon className="h-4 w-4" />
           </div>
@@ -321,30 +320,30 @@ export default function CurrencyConverter() {
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="fromCurrency">From</Label>
+              <Label htmlFor="fromCurrency">De</Label>
               <Select value={fromCurrency} onValueChange={setFromCurrency}>
                 <SelectTrigger id="fromCurrency">
-                  <SelectValue placeholder="Select currency" />
+                  <SelectValue placeholder="Seleccionar moneda" />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.keys(exchangeRates).map((currency) => (
                     <SelectItem key={currency} value={currency}>
-                      {currency}
+                      {currencyFlags[currency]} {currency}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="toCurrency">To</Label>
+              <Label htmlFor="toCurrency">A</Label>
               <Select value={toCurrency} onValueChange={setToCurrency}>
                 <SelectTrigger id="toCurrency">
-                  <SelectValue placeholder="Select currency" />
+                  <SelectValue placeholder="Seleccionar moneda" />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.keys(exchangeRates).map((currency) => (
                     <SelectItem key={currency} value={currency}>
-                      {currency}
+                      {currencyFlags[currency]} {currency}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -352,49 +351,49 @@ export default function CurrencyConverter() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="amount">Cantidad</Label>
             <Input
               id="amount"
               type="number"
               value={amount}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)}
-              placeholder="Enter amount"
+              placeholder="Ingrese cantidad"
             />
           </div>
           <div className="space-y-2">
-            <Label>Converted Amount</Label>
+            <Label>Cantidad Convertida</Label>
             <Input value={convertedAmount} readOnly />
           </div>
           {fromCurrency === 'USD' && toCurrency === 'ARS' && taxBreakdown.baseAmount && (
             <div className="space-y-2 text-sm">
-              <p>Tax Breakdown:</p>
-              <p>Base Amount: AR$ {taxBreakdown.baseAmount.toFixed(2)}</p>
+              <p>Desglose de Impuestos:</p>
+              <p>Monto Base: AR$ {taxBreakdown.baseAmount.toFixed(2)}</p>
               <p>IVA (21%): AR$ {taxBreakdown.iva.toFixed(2)}</p>
-              <p>PAIS (8%): AR$ {taxBreakdown.pais.toFixed(2)}</p>
-              <p>Ganancias (30%): AR$ {taxBreakdown.ganancias.toFixed(2)}</p>
+              <p>Impuesto PAIS (8%): AR$ {taxBreakdown.pais.toFixed(2)}</p>
+              <p>Impuesto a las Ganancias (30%): AR$ {taxBreakdown.ganancias.toFixed(2)}</p>
               <p>IIBB Buenos Aires (2%): AR$ {taxBreakdown.iibb.toFixed(2)}</p>
-              <p>Total with taxes: AR$ {taxBreakdown.total.toFixed(2)}</p>
+              <p>Total con impuestos: AR$ {taxBreakdown.total.toFixed(2)}</p>
             </div>
           )}
           <div className="space-y-2">
-            <Label>Total in {fromCurrency} (including subscriptions)</Label>
+            <Label>Total en {fromCurrency} (incluyendo suscripciones)</Label>
             <Input value={`${totalOriginal.toFixed(2)} ${fromCurrency}`} readOnly />
           </div>
           <div className="space-y-2">
-            <Label>Total in {toCurrency} (including subscriptions{fromCurrency === 'USD' && toCurrency === 'ARS' ? ' and taxes' : ''})</Label>
+            <Label>Total en {toCurrency} (incluyendo suscripciones{fromCurrency === 'USD' && toCurrency === 'ARS' ? ' e impuestos' : ''})</Label>
             <Input value={`${totalConverted.toFixed(2)} ${toCurrency}`} readOnly />
           </div>
           {fromCurrency === 'USD' && toCurrency === 'ARS' && (
             <div className="text-sm text-muted-foreground">
-              *Includes IVA (21%), PAIS Tax (8%), Earnings Tax (30%), and IIBB (2%)
+              *Incluye IVA (21%), Impuesto PAIS (8%), Impuesto a las Ganancias (30%), e IIBB (2%)
             </div>
           )}
         </CardContent>
       </Card>
       
-      <Card className="w-full lg:w-1/3">
+      <Card className="w-full lg:w-1/3 shadow-lg">
         <CardHeader>
-          <CardTitle>Subscriptions</CardTitle>
+          <CardTitle>Suscripciones</CardTitle>
         </CardHeader>
         <CardContent>
           <Accordion type="multiple" value={openCategories} onValueChange={setOpenCategories}>
@@ -412,7 +411,7 @@ export default function CurrencyConverter() {
                         />
                         <span>{sub.name}</span>
                       </Label>
-                      <span>${sub.price.toFixed(2)}</span>
+                      <span>{getConvertedPrice(sub.price)} {toCurrency}</span>
                     </div>
                   ))}
                 </AccordionContent>
