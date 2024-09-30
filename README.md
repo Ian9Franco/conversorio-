@@ -1,24 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Conversor de Monedas Mejorado
 
-## Getting Started
+## Descripción en Español
 
-First, run the development server:
+Este proyecto es un Conversor de Monedas Mejorado desarrollado con Next.js. La aplicación permite a los usuarios convertir entre diferentes monedas, con un enfoque especial en la conversión de USD a ARS (Pesos Argentinos), incluyendo cálculos de impuestos específicos.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Características principales:
+- Conversión de monedas en tiempo real utilizando tasas de cambio actualizadas.
+- Cálculo detallado de impuestos para conversiones de USD a ARS.
+- Gestión de suscripciones categorizadas con precios en USD.
+- Interfaz de usuario intuitiva con modo oscuro.
+- Cálculo del total incluyendo suscripciones seleccionadas y aplicando impuestos cuando corresponde.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Para comenzar:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone el repositorio
+2. Instale las dependencias con `npm install`
+3. Ejecute el servidor de desarrollo con `npm run dev`
+4. Abra [http://localhost:3000](http://localhost:3000) en su navegador
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Description in English
+
+This project is an Enhanced Currency Converter developed with Next.js. The application allows users to convert between different currencies, with a special focus on USD to ARS (Argentine Pesos) conversion, including specific tax calculations.
+
+Key features:
+- Real-time currency conversion using up-to-date exchange rates.
+- Detailed tax calculation for USD to ARS conversions.
+- Management of categorized subscriptions with prices in USD.
+- Intuitive user interface with dark mode.
+- Total calculation including selected subscriptions and applying taxes where applicable.
+
+To get started:
+
+1. Clone the repository
+2. Install dependencies with `npm install`
+3. Run the development server with `npm run dev`
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## Learn More
 
